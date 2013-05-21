@@ -74,7 +74,10 @@ def fin(rawresult):
     sys.exit(haserror)
 
 def renderjson(rawresult):
-    result = json.loads(rawresult.decode("utf-8"))
+    try:
+      result = json.loads(rawresult.decode("utf-8"))
+    except ValueError:
+      return False
     errors = 0
     warnings = 0
     for msg in result['messages']:
@@ -86,7 +89,13 @@ def renderjson(rawresult):
             errors += 1
         else:
             warnings += 1
+    return True
 
+def renderhtml(rawresult):
+          rawresult = list(filterhtml(rawresult))
+          rawresult = b"\n".join(rawresult)
+          rawresult = w3mrender(rawresult)
+          return rawresult
 if __name__ == "__main__":
     par = argparse.ArgumentParser(description="Default: --renderjson")
     par.add_argument("--renderhtml",help="Upload to validator. Parse validator HTML.", const="renderhtml", action="store_const", dest="mode")
@@ -104,12 +113,11 @@ if __name__ == "__main__":
     if "raw" not in parsed.mode:
         rawresult = rawresult.partition(b"\n\n")[2]
         if "json" not in parsed.mode:
-          rawresult = list(filterhtml(rawresult))
-          rawresult = b"\n".join(rawresult)
-          rawresult = w3mrender(rawresult)
-          fin(rawresult)
+          fin(renderhtml(rawresult))
         elif "renderjson" == parsed.mode:
-          renderjson(rawresult)
+          res = renderjson(rawresult)
+          if not res:
+            fin(renderhtml(rawresult))
         else:
           fin(rawresult)
     else:
