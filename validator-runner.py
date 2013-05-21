@@ -90,7 +90,7 @@ def stolen(result):
             warnings += 1
 
 if __name__ == "__main__":
-    par = argparse.ArgumentParser()
+    par = argparse.ArgumentParser(description="Default: Upload to validator. Parse validator HTML.")
     par.add_argument("--raw",       help="Upload to validator. Do not parse returned HTML.", action="store_const", const="raw", dest="mode")
     par.add_argument("--get",       help="Make validator download.        Parse validator HTML.", const="get", action="store_const", dest="mode")
     par.add_argument("--rawget",    help="Make validator download. Do not parse validator HTML.", const="rawget", action="store_const", dest="mode")
