@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import lxml
-import lxml.etree
-import lxml.html
 import random
 import io
 import sys
@@ -47,7 +44,10 @@ def val(postdata, newenv):
     p = subprocess.Popen([VALIDATOR_PATH], env=newenv, stderr=subprocess.PIPE, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     return p.communicate(postdata)[0]
 
-def main(txt):
+def filterhtml(txt):
+    import lxml.etree
+    import lxml.html
+
     ET = lxml.html.document_fromstring(txt)
     
     for i in itertools.chain(ET.xpath(".//*[@id='results']"), ET.xpath(".//*[@id='result']"), ET.xpath(".//*[@id='fatal-errors']")):
@@ -73,10 +73,8 @@ def fin(rawresult):
     print(rawresult.decode("utf-8"))
     sys.exit(haserror)
 
-def prettyjson(rawresult):
-    stolen(json.loads(rawresult.decode("utf-8")))
-
-def stolen(result):
+def renderjson(rawresult):
+    result = json.loads(rawresult.decode("utf-8"))
     errors = 0
     warnings = 0
     for msg in result['messages']:
@@ -90,27 +88,28 @@ def stolen(result):
             warnings += 1
 
 if __name__ == "__main__":
-    par = argparse.ArgumentParser(description="Default: Upload to validator. Parse validator HTML.")
-    par.add_argument("--raw",       help="Upload to validator. Do not parse returned HTML.", action="store_const", const="raw", dest="mode")
-    par.add_argument("--get",       help="Make validator download.        Parse validator HTML.", const="get", action="store_const", dest="mode")
+    par = argparse.ArgumentParser(description="Default: --renderjson")
+    par.add_argument("--renderhtml",help="Upload to validator. Parse validator HTML.", const="renderhtml", action="store_const", dest="mode")
+    par.add_argument("--rawhtml",   help="Upload to validator. Do not parse returned HTML.", const="rawhtml", action="store_const", dest="mode")
+    par.add_argument("--gethtml",   help="Make validator download.        Parse validator HTML.", const="gethtml", action="store_const", dest="mode")
     par.add_argument("--rawget",    help="Make validator download. Do not parse validator HTML.", const="rawget", action="store_const", dest="mode")
-    par.add_argument("--prettyjson",help="Upload to validator.        Parse returned JSON.", const="prettyjson", action="store_const", dest="mode")
+    par.add_argument("--renderjson",help="Upload to validator.        Parse returned JSON.", const="renderjson", action="store_const", dest="mode")
     par.add_argument("--rawjson",   help="Upload to validator. Do not parse returned JSON.", const="rawjson", action="store_const", dest="mode")
     par.add_argument("uri",         help="File or URI to validate")
     parsed = par.parse_args()
-    if not parsed.mode: parsed.mode = "html"
+    if not parsed.mode: parsed.mode = "renderjson"
 
     rawresult = callvalidator(parsed.uri, parsed.mode)
     haserror = checkheaderforerror(rawresult)
     if "raw" not in parsed.mode:
         rawresult = rawresult.partition(b"\n\n")[2]
         if "json" not in parsed.mode:
-          rawresult = list(main(rawresult))
+          rawresult = list(filterhtml(rawresult))
           rawresult = b"\n".join(rawresult)
           rawresult = w3mrender(rawresult)
           fin(rawresult)
-        elif "prettyjson" == parsed.mode:
-          prettyjson(rawresult)
+        elif "renderjson" == parsed.mode:
+          renderjson(rawresult)
         else:
           fin(rawresult)
     else:
