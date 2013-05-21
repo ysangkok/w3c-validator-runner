@@ -104,7 +104,7 @@ if __name__ == "__main__":
     par.add_argument("--rawget",    help="Make validator download. Do not parse validator HTML.", const="rawget", action="store_const", dest="mode")
     par.add_argument("--renderjson",help="Upload to validator.        Parse returned JSON.", const="renderjson", action="store_const", dest="mode")
     par.add_argument("--rawjson",   help="Upload to validator. Do not parse returned JSON.", const="rawjson", action="store_const", dest="mode")
-    par.add_argument("uri",         help="File or URI to validate")
+    par.add_argument("uri",         help="File or URI to validate. URI if the validator is downloading, file when it's not.")
     parsed = par.parse_args()
     if not parsed.mode: parsed.mode = "renderjson"
 
