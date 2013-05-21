@@ -9,7 +9,7 @@ import string
 import os
 import json
 
-VALIDATOR_PATH = "/var/www/cgi-bin/w3c-markup-validator/check"
+VALIDATOR_PATH = "/usr/lib/cgi-bin/w3c-markup-validator/check"
 URL_PREFIX = "http://tyskland.goxadidi.dk:8800/"
 
 def id(N):
